@@ -4,6 +4,7 @@ from flask_jwt import JWT
 
 from resources.user import UserRegister, UserList
 from resources.state import State, StateList
+from resources.loan import Loan
 
 from security import authenticate, identity
 
@@ -26,6 +27,7 @@ api.add_resource(UserRegister, '/api/user/register')
 api.add_resource(State, '/api/state')
 api.add_resource(StateList, '/api/states')
 api.add_resource(UserList, '/api/admin/users')
+api.add_resource(Loan, '/api/loan')
 
 
 if __name__ == '__main__':
