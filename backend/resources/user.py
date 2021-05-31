@@ -25,3 +25,13 @@ class UserRegister(Resource):
         user = UserModel(data['email'], data['password'])
         user.save_to_db()
         return {'message': 'User created successfully'}, 201
+
+
+class UserList(Resource):
+
+    def get(self):
+        return list(
+            map(
+                lambda x: x.json(), UserModel.query.all()
+            )
+        )

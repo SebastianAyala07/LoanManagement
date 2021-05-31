@@ -11,7 +11,7 @@ class UserTest(unittest.TestCase):
 
     def setUp(self):
         self.app = app.test_client()
-        self.db = db.get_db()
+        self.db = db.init_app(app)
         self.user_test = os.environ['USER_TEST']
         self.password_test = os.environ['USER_TEST_PASSWORD']
         auth = self.app.post(
@@ -19,13 +19,14 @@ class UserTest(unittest.TestCase):
             headers={
                 "Content-Type": "application/json"
             },
-            data={
-                "email": self.user_test,
+            data=json.dumps({
+                "username": self.user_test,
                 "password": self.password_test
-            }
+            })
         )
+        access_token = auth.get_json()
         self.headers = {
-            "Authorization": "JWT {}".format((auth.json())['access_token']),
+            "Authorization": "JWT {}".format(access_token.get('access_token')),
             "Content-Type": "application/json"
         }
 
@@ -83,7 +84,7 @@ class TestLoan(unittest.TestCase):
 
     def setUp(self):
         self.app = app.test_client()
-        self.db = db.get_db()
+        self.db = db.init_app(app)
         self.user_test = os.environ['USER_TEST']
         self.password_test = os.environ['USER_TEST_PASSWORD']
         auth = self.app.post(
@@ -91,13 +92,14 @@ class TestLoan(unittest.TestCase):
             headers={
                 "Content-Type": "application/json"
             },
-            data={
-                "email": self.user_test,
+            data=json.dumps({
+                "username": self.user_test,
                 "password": self.password_test
-            }
+            })
         )
+        access_token = auth.get_json()
         self.headers = {
-            "Authorization": "JWT {}".format((auth.json())['access_token']),
+            "Authorization": "JWT {}".format(access_token.get('access_token')),
             "Content-Type": "application/json"
         }
 
@@ -210,7 +212,7 @@ class TestPayment(unittest.TestCase):
 
     def setUp(self):
         self.app = app.test_client()
-        self.db = db.get_db()
+        self.db = db.init_app(app)
         self.user_test = os.environ['USER_TEST']
         self.password_test = os.environ['USER_TEST_PASSWORD']
         auth = self.app.post(
@@ -218,13 +220,14 @@ class TestPayment(unittest.TestCase):
             headers={
                 "Content-Type": "application/json"
             },
-            data={
-                "email": self.user_test,
+            data=json.dumps({
+                "username": self.user_test,
                 "password": self.password_test
-            }
+            })
         )
+        access_token = auth.get_json()
         self.headers = {
-            "Authorization": "JWT {}".format((auth.json())['access_token']),
+            "Authorization": "JWT {}".format(access_token.get('access_token')),
             "Content-Type": "application/json"
         }
         self.payload_loan = json.dumps(

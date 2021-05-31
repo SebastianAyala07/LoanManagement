@@ -2,7 +2,8 @@ from flask import Flask
 from flask_restful import Api
 from flask_jwt import JWT
 
-from resources.user import UserRegister
+from resources.user import UserRegister, UserList
+from resources.state import State, StateList
 
 from security import authenticate, identity
 
@@ -22,6 +23,9 @@ def create_tables():
 jwt = JWT(app, authenticate, identity)
 
 api.add_resource(UserRegister, '/api/user/register')
+api.add_resource(State, '/api/state')
+api.add_resource(StateList, '/api/states')
+api.add_resource(UserList, '/api/admin/users')
 
 
 if __name__ == '__main__':
