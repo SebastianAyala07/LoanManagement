@@ -1,7 +1,7 @@
 from db import db
 
 
-class Payment(db.Model):
+class PaymentModel(db.Model):
 
     __tablename__ = 'paymnet'
 
