@@ -22,13 +22,19 @@ class Loan(Resource):
     parser.add_argument(
         'amount_money',
         required=True,
-        type=float,
-        help="This field cannot be left blank!"
+        type=inputs.positive,
+        help="This field cannot be left blank and not can be negative or zero!"
     )
     parser.add_argument(
         'is_loan',
         required=True,
         type=inputs.boolean,
+        help="This field cannot be left blank!"
+    )
+    parser.add_argument(
+        'number_installments',
+        required=True,
+        type=int,
         help="This field cannot be left blank!"
     )
 
@@ -52,10 +58,11 @@ class Loan(Resource):
             data['fiscal_number'],
             data['company_name'],
             data['amount_money'],
-            data['is_loan']
+            data['is_loan'],
+            number_installments=data['number_installments']
         )
         loan.save_to_db()
-        return loan.json()
+        return loan.json(), 201
 
     def put(self):
         parser_put = self.parser
@@ -75,12 +82,6 @@ class Loan(Resource):
             'missing_debt',
             required=True,
             type=float,
-            help="This field cannot be left blank!"
-        )
-        parser_put.add_argument(
-            'number_installments',
-            required=True,
-            type=int,
             help="This field cannot be left blank!"
         )
         parser_put.add_argument(
@@ -120,5 +121,7 @@ class Loan(Resource):
         )
         data = parser_delete.parse_args()
         loan = LoanModel.find_by_loanid(data['id'])
-        loan.delete_from_db()
-        return {'message': 'Loan deleted'}
+        if loan:
+            loan.delete_from_db()
+            return {'message': 'Loan deleted'}
+        return {'message': 'Loan no exists'}, 400
