@@ -14,7 +14,7 @@ import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQL_DATABASE_URI']
-app.config['SQLALCHEMY_TECK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.environ['SECRET_API_KEY']
 api = Api(app)
 

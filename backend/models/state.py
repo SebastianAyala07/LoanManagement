@@ -13,13 +13,18 @@ class StateModel(db.Model):
     description = db.Column(db.String(50))
     apply_for_loan = db.Column(db.Boolean)
 
-    def json(self):
-        return {
+    loans = db.relationship('LoanModel', lazy='dynamic')
+
+    def json(self, show_loans=False):
+        json_return = {
             'id': self.id,
             'code': self.code,
             'description': self.description,
-            'apply_for_loan': self.apply_for_loan
+            'apply_for_loan': self.apply_for_loan,
         }
+        if show_loans:
+            json_return['loans'] = list(map(lambda x: x.json(), self.loans.all()))
+        return json_return
 
     def __init__(self, code, description, apply_for_loan):
         self.code = code

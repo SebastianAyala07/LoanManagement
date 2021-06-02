@@ -9,11 +9,18 @@ class UserModel(db.Model):
     email = db.Column(db.String(150))
     password = db.Column(db.String(80))
 
+    loans = db.relationship('LoanModel', lazy='dynamic')
+
     def json(self):
         return {
             'id': self.id,
             'email': self.email,
-            'password': self.password
+            'password': self.password,
+            'loans': list(
+                map(
+                    lambda x: x.json(), self.loans.all()
+                )
+            )
         }
 
     def __init__(self, email, password):

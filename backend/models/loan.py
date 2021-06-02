@@ -14,10 +14,14 @@ class LoanModel(db.Model):
     missing_debt = db.Column(db.Float)
     number_installments = db.Column(db.Integer)
     date_response = db.Column(db.DateTime)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    state_id = db.Column(db.Integer, db.ForeignKey('state.id'))
 
     def json(self):
         return {
             'id': self.id,
+            'user_id': self.user_id,
+            'state_id': self.state_id,
             'fiscal_number': self.fiscal_number,
             'company_name': self.company_name,
             'amount_money': self.amount_money,
@@ -34,10 +38,12 @@ class LoanModel(db.Model):
         }
 
     def __init__(
-        self, fiscal_number, company_name, amount_money,
+        self, user_id, state_id, fiscal_number, company_name, amount_money,
         is_loan, accept_terms_conditions=False, missing_debt=0,
         number_installments=0, date_response=None
     ):
+        self.user_id = user_id
+        self.state_id = state_id
         self.fiscal_number = fiscal_number
         self.company_name = company_name
         self.amount_money = amount_money

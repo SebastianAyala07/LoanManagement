@@ -1,5 +1,7 @@
 from flask_restful import Resource, reqparse, inputs
+from flask_jwt import jwt_required, current_identity
 from models.loan import LoanModel
+from models.state import StateModel
 
 from datetime import date
 
@@ -52,9 +54,13 @@ class Loan(Resource):
             return loan.json()
         return {'message': 'Loan not found'}, 404
 
+    @jwt_required()
     def post(self):
         data = Loan.parser.parse_args()
+        user = current_identity.first()
         loan = LoanModel(
+            user.id,
+            1,
             data['fiscal_number'],
             data['company_name'],
             data['amount_money'],
@@ -91,10 +97,11 @@ class Loan(Resource):
             help="This field cannot be left blank!"
         )
         data = parser_put.parse_args()
+        user = current_identity.first()
         loan = LoanModel.find_by_loanid(data['id'])
         if loan is None:
             loan = LoanModel(
-                data['fiscal_number'], data['company_name'],
+                user.id, data['fiscal_number'], data['company_name'],
                 data['amount_money'], data['is_loan'],
                 data['accept_terms_conditions'], data['missing_debt'],
                 data['number_installments'], data['date_response']
