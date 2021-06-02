@@ -1,7 +1,8 @@
 from flask_restful import Resource, reqparse, inputs
 from models.payment import PaymentModel
+from models.loan import LoanModel
 
-from datetime import date
+from datetime import timedelta
 
 
 class Payment(Resource):
@@ -10,13 +11,13 @@ class Payment(Resource):
     parser.add_argument(
         'date_payment_efective',
         required=True,
-        type=date,
+        type=inputs.date,
         help="This field cannot be left blank!"
     )
     parser.add_argument(
         'date_payment_deadline',
         required=True,
-        type=date,
+        type=inputs.date,
         help="This field cannot be left blank!"
     )
     parser.add_argument(
@@ -95,3 +96,34 @@ class Payment(Resource):
             payment.delete_from_db()
             return {'message': 'Payment deleted'}
         return {'message': 'Payment no exists'}, 400
+
+
+class PaymentMasiv(Resource):
+
+    parser = reqparse.RequestParser()
+    parser.add_argument(
+        'loan_id',
+        required=True,
+        type=int,
+        help="This field cannot be left blank!"
+    )
+
+    def post(self):
+        data = self.parser.parse_args()
+        loan = LoanModel.find_by_loanid(data['loan_id'])
+        if loan is None:
+            return {'message': 'Loan not found'}, 400
+        amount_per_day = loan.amount_money / loan.number_installments
+        date_to_pay = loan.date_response + timedelta(days=1)
+        payments_to_create = list()
+        for i in range(loan.number_installments):
+            payment_daily = PaymentModel(
+                None,
+                date_to_pay,
+                True, # Active is true if it has not yet been paid
+                amount_per_day
+            )
+            payments_to_create.append(payment_daily)
+            date_to_pay += timedelta(days=1)
+        pay = PaymentModel.save_many_to_db(payments_to_create)
+        return {'payments': list(map(lambda x: x.json(), payments_to_create))}, 201

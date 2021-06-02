@@ -13,7 +13,7 @@ class LoanModel(db.Model):
     is_loan = db.Column(db.Boolean)
     missing_debt = db.Column(db.Float)
     number_installments = db.Column(db.Integer)
-    date_response = db.Column(db.Date)
+    date_response = db.Column(db.DateTime)
 
     def json(self):
         return {
@@ -25,7 +25,12 @@ class LoanModel(db.Model):
             'is_loan': self.is_loan,
             'missing_debt': self.missing_debt,
             'number_installments': self.number_installments,
-            'date_response': self.date_response
+            'date_response':
+            (
+                self.date_response.strftime('%Y-%m-%d')
+                if self.date_response
+                else None
+            )
         }
 
     def __init__(

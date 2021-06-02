@@ -6,16 +6,26 @@ class PaymentModel(db.Model):
     __tablename__ = 'paymnet'
 
     id = db.Column(db.Integer, primary_key=True)
-    date_payment_efective = db.Column(db.Date)
-    date_payment_deadline = db.Column(db.Date)
+    date_payment_efective = db.Column(db.DateTime)
+    date_payment_deadline = db.Column(db.DateTime, nullable=False)
     is_active = db.Column(db.Boolean)
     amount_pay = db.Column(db.Float)
 
     def json(self):
         return {
             'id': self.id,
-            'date_payment_efective': self.date_payment_efective,
-            'date_payment_deadline': self.date_payment_deadline,
+            'date_payment_efective':
+            (
+                self.date_payment_efective.strftime('%Y-%m-%d')
+                if self.date_payment_efective
+                else None
+            ),
+            'date_payment_deadline':
+            (
+                self.date_payment_deadline.strftime('%Y-%m-%d')
+                if self.date_payment_deadline
+                else None
+            ),
             'is_active': self.is_active,
             'amount_pay': self.amount_pay
         }
@@ -36,6 +46,11 @@ class PaymentModel(db.Model):
 
     def delete_from_db(self):
         db.session.delete(self)
+        db.session.commit()
+
+    @classmethod
+    def save_many_to_db(self, data):
+        db.session.add_all(data)
         db.session.commit()
 
     @classmethod

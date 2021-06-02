@@ -87,7 +87,7 @@ class Loan(Resource):
         parser_put.add_argument(
             'date_response',
             required=True,
-            type=date,
+            type=inputs.date,
             help="This field cannot be left blank!"
         )
         data = parser_put.parse_args()
