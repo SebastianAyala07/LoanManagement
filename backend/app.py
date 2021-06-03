@@ -8,6 +8,7 @@ from resources.loan import Loan
 from resources.payment import Payment,PaymentMasiv
 
 from security import authenticate, identity
+from initial_data import InitialInformation
 
 from db import db
 import os
@@ -21,6 +22,7 @@ api = Api(app)
 @app.before_first_request
 def create_tables():
     db.create_all()
+    InitialInformation.create_inital_data(db)
 
 jwt = JWT(app, authenticate, identity)
 

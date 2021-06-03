@@ -2,8 +2,11 @@ from flask_restful import Resource, reqparse, inputs
 from flask_jwt import jwt_required, current_identity
 from models.loan import LoanModel
 from models.state import StateModel
+from initial_data import INITIAL_STATES
 
 from datetime import date
+
+DEFAULT_STATE = INITIAL_STATES.get('default')
 
 
 class Loan(Resource):
@@ -58,9 +61,10 @@ class Loan(Resource):
     def post(self):
         data = Loan.parser.parse_args()
         user = current_identity.first()
+        state = StateModel.find_by_code(DEFAULT_STATE.get('code'))
         loan = LoanModel(
             user.id,
-            1,
+            state.id,
             data['fiscal_number'],
             data['company_name'],
             data['amount_money'],
@@ -70,6 +74,7 @@ class Loan(Resource):
         loan.save_to_db()
         return loan.json(), 201
 
+    @jwt_required()
     def put(self):
         parser_put = self.parser
         parser_put.add_argument(
@@ -96,17 +101,26 @@ class Loan(Resource):
             type=inputs.date,
             help="This field cannot be left blank!"
         )
+        parser_put.add_argument(
+            'state_id',
+            required=True,
+            type=int,
+            help="This field cannot be left blank!"
+        )
         data = parser_put.parse_args()
         user = current_identity.first()
         loan = LoanModel.find_by_loanid(data['id'])
+        state = StateModel.find_by_code(DEFAULT_STATE.get('code'))
         if loan is None:
             loan = LoanModel(
-                user.id, data['fiscal_number'], data['company_name'],
+                user.id, state.id,
+                data['fiscal_number'], data['company_name'],
                 data['amount_money'], data['is_loan'],
                 data['accept_terms_conditions'], data['missing_debt'],
                 data['number_installments'], data['date_response']
             )
         else:
+            loan.state_id = data['state_id']
             loan.fiscal_number = data['fiscal_number']
             loan.company_name = data['company_name']
             loan.amount_money = data['amount_money']
