@@ -1,10 +1,18 @@
 from models.state import StateModel
+from models.user import UserModel
+
+import os
 
 
 INITIAL_STATES = {
     'default': {
         'code': 'PND',
         'description': 'Pending',
+        'apply_for_loan': False
+    },
+    'undecided':{
+        'code': 'UNDCD',
+        'description': 'Undecided',
         'apply_for_loan': False
     },
     'approved': {
@@ -43,4 +51,12 @@ class InitialInformation():
                         state.get('apply_for_loan')
                     )
                 )
+            db.session.commit()
+        if len(db.session.query(UserModel).all()) == 0:
+            db.session.add(
+                UserModel(
+                    os.environ['USER_TEST'],
+                    os.environ['USER_TEST_PASSWORD']
+                )
+            )
             db.session.commit()

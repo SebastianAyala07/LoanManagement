@@ -3,6 +3,7 @@ from flask_jwt import jwt_required, current_identity
 from models.loan import LoanModel
 from models.state import StateModel
 from initial_data import INITIAL_STATES
+from utilities.response_loan import ResponseLoan
 
 from datetime import date
 
@@ -31,12 +32,6 @@ class Loan(Resource):
         help="This field cannot be left blank and not can be negative or zero!"
     )
     parser.add_argument(
-        'is_loan',
-        required=True,
-        type=inputs.boolean,
-        help="This field cannot be left blank!"
-    )
-    parser.add_argument(
         'number_installments',
         required=True,
         type=int,
@@ -61,14 +56,17 @@ class Loan(Resource):
     def post(self):
         data = Loan.parser.parse_args()
         user = current_identity.first()
-        state = StateModel.find_by_code(DEFAULT_STATE.get('code'))
+        code_state, is_loan = ResponseLoan.calculate_reponse_by_amount(
+            data['amount_money']
+        )
+        state = StateModel.find_by_code(code_state)
         loan = LoanModel(
             user.id,
             state.id,
             data['fiscal_number'],
             data['company_name'],
             data['amount_money'],
-            data['is_loan'],
+            is_loan,
             number_installments=data['number_installments']
         )
         loan.save_to_db()
@@ -110,21 +108,24 @@ class Loan(Resource):
         data = parser_put.parse_args()
         user = current_identity.first()
         loan = LoanModel.find_by_loanid(data['id'])
-        state = StateModel.find_by_code(DEFAULT_STATE.get('code'))
+        code_state, is_loan = ResponseLoan.calculate_reponse_by_amount(
+            data['amount_money']
+        )
+        state = StateModel.find_by_code(code_state)
         if loan is None:
             loan = LoanModel(
                 user.id, state.id,
                 data['fiscal_number'], data['company_name'],
-                data['amount_money'], data['is_loan'],
+                data['amount_money'], is_loan,
                 data['accept_terms_conditions'], data['missing_debt'],
                 data['number_installments'], data['date_response']
             )
         else:
-            loan.state_id = data['state_id']
+            loan.state_id = state.id
             loan.fiscal_number = data['fiscal_number']
             loan.company_name = data['company_name']
             loan.amount_money = data['amount_money']
-            loan.is_loan = data['is_loan']
+            loan.is_loan = is_loan
             loan.accept_terms_conditions = data['accept_terms_conditions']
             loan.missing_debt = data['missing_debt'],
             loan.number_installments = data['number_installments']

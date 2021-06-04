@@ -3,17 +3,19 @@ from db import db
 
 class PaymentModel(db.Model):
 
-    __tablename__ = 'paymnet'
+    __tablename__ = 'payment'
 
     id = db.Column(db.Integer, primary_key=True)
     date_payment_efective = db.Column(db.DateTime)
     date_payment_deadline = db.Column(db.DateTime, nullable=False)
     is_active = db.Column(db.Boolean)
     amount_pay = db.Column(db.Float)
+    loan_id = db.Column(db.Integer, db.ForeignKey('loan.id'))
 
     def json(self):
         return {
             'id': self.id,
+            'loan_id': self.loan_id,
             'date_payment_efective':
             (
                 self.date_payment_efective.strftime('%Y-%m-%d')
@@ -31,10 +33,11 @@ class PaymentModel(db.Model):
         }
 
     def __init__(
-        self,
+        self, loan_id,
         date_payment_efective, date_payment_deadline,
         is_active, amount_pay
     ):
+        self.loan_id = loan_id
         self.date_payment_efective = date_payment_efective
         self.date_payment_deadline = date_payment_deadline
         self.is_active = is_active

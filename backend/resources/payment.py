@@ -9,6 +9,12 @@ class Payment(Resource):
 
     parser = reqparse.RequestParser()
     parser.add_argument(
+        'loan_id',
+        required=True,
+        type=int,
+        help="This field cannot be left blank!"
+    )
+    parser.add_argument(
         'date_payment_efective',
         required=True,
         type=inputs.date,
@@ -49,6 +55,7 @@ class Payment(Resource):
     def post(self):
         data = Payment.parser.parse_args()
         payment = PaymentModel(
+            data['loan_id'],
             data['date_payment_efective'],
             data['date_payment_deadline'],
             data['is_active'],
@@ -69,6 +76,7 @@ class Payment(Resource):
         payment = PaymentModel.find_by_paymentid(data['id'])
         if payment is None:
             payment = PaymentModel(
+                data['loan_id'],
                 data['date_payment_efective'],
                 data['date_payment_deadline'],
                 data['is_active'],
@@ -113,11 +121,14 @@ class PaymentMasiv(Resource):
         loan = LoanModel.find_by_loanid(data['loan_id'])
         if loan is None:
             return {'message': 'Loan not found'}, 400
+        elif not (loan.is_loan and loan.accept_terms_conditions):
+            return {'message': 'Unable to generate payments for a loan application'}, 400
         amount_per_day = loan.amount_money / loan.number_installments
         date_to_pay = loan.date_response + timedelta(days=1)
         payments_to_create = list()
         for i in range(loan.number_installments):
             payment_daily = PaymentModel(
+                loan.id,
                 None,
                 date_to_pay,
                 True, # Active is true if it has not yet been paid

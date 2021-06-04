@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date
 import unittest
 import json
 import os
@@ -109,7 +109,6 @@ class TestLoan(unittest.TestCase):
                 "fiscal_number": "1234534",
                 "company_name": "SAG S.A.S",
                 "amount_money": 48000,
-                "is_loan": False, #It is not yet a loan. It's a loan application
                 "number_installments": 60,
             }
         )
@@ -131,7 +130,6 @@ class TestLoan(unittest.TestCase):
                 "fiscal_number": "1234534",
                 "company_name": "SAG S.A.S",
                 "amount_money": 560000,
-                "is_loan": False,
                 "number_installments": 60,
             }
         )
@@ -153,7 +151,6 @@ class TestLoan(unittest.TestCase):
                 "fiscal_number": "1234534",
                 "company_name": "SAG S.A.S",
                 "amount_money": 50000,
-                "is_loan": False,
                 "number_installments": 60,
             }
         )
@@ -175,7 +172,6 @@ class TestLoan(unittest.TestCase):
                 "fiscal_number": "1234534",
                 "company_name": "SAG S.A.S",
                 "amount_money": -50,
-                "is_loan": False,
                 "number_installments": 60,
             }
         )
@@ -194,7 +190,6 @@ class TestLoan(unittest.TestCase):
                 "fiscal_number": "1234534",
                 "company_name": "SAG S.A.S",
                 "amount_money": 0,
-                "is_loan": False,
                 "number_installments": 60,
             }
         )
@@ -235,7 +230,6 @@ class TestPayment(unittest.TestCase):
                 "fiscal_number": "1234534",
                 "company_name": "SAG S.A.S",
                 "amount_money": 48000,
-                "is_loan": False,
                 "number_installments": 60,
             }
         )
@@ -244,12 +238,20 @@ class TestPayment(unittest.TestCase):
             headers=self.headers,
             data=self.payload_loan
         )
+        loan = self.response.get_json()
+        loan['accept_terms_conditions'] = True
+        self.response = self.app.put(
+            '/api/loan',
+            headers=self.headers,
+            data=json.dumps(loan)
+        )
+        print(f"\n\nDFR{self.response.get_json()}\n\n")
 
     def test_generate_payments(self):
-        loan_data = self.response[0]
+        loan_data = self.response.get_json()
         payload = json.dumps(
             {
-                "loan_id": loan_data.id
+                "loan_id": loan_data.get('id')
             }
         )
 
@@ -258,23 +260,28 @@ class TestPayment(unittest.TestCase):
             headers=self.headers,
             data=payload
         )
+        print(f"\n\nER{response.get_json()}\n\n")
 
         self.assertEqual(201, response.status_code)
 
     def test_create_payment(self):
-        loan_data = self.response[0]
+        loan_data = self.response.get_json()
+        date_today = date.today()
         payload = json.dumps(
             {
-                "loan_id": loan_data.id,
-                "date_payment_deadline": datetime.now(timezone.utc),
-                "date_payment_efective": datetime.now(timezone.utc)
+                "loan_id": loan_data.get('id'),
+                "date_payment_deadline": date_today.isoformat(),
+                "date_payment_efective": date_today.isoformat(),
+                "is_active": False,
+                "amount_pay": 3000
             }
         )
 
-        response = self.app.put(
+        response = self.app.post(
             '/api/payment',
             headers=self.headers,
             data=payload
         )
+        print(f"\n\nTT{response.get_json()}\n\n")
 
         self.assertEqual(200, response.status_code)

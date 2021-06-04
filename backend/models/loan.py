@@ -17,6 +17,8 @@ class LoanModel(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     state_id = db.Column(db.Integer, db.ForeignKey('state.id'))
 
+    payments = db.relationship('PaymentModel', lazy='dynamic')
+
     def json(self):
         return {
             'id': self.id,
@@ -34,6 +36,11 @@ class LoanModel(db.Model):
                 self.date_response.strftime('%Y-%m-%d')
                 if self.date_response
                 else None
+            ),
+            'payments': list(
+                map(
+                    lambda x: x.json(), self.payments.all()
+                )
             )
         }
 
