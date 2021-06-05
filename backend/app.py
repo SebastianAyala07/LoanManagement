@@ -14,7 +14,7 @@ from db import db
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQL_DATABASE_URI']
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQL_DATABASE_TEST_URI']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.environ['SECRET_API_KEY']
 api = Api(app)
@@ -36,5 +36,6 @@ api.add_resource(PaymentMasiv, '/api/payments/generate')
 
 
 if __name__ == '__main__':
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQL_DATABASE_URI']
     db.init_app(app)
-    app.run(port=5000, debug=True)
+    app.run(port=6000, debug=True)

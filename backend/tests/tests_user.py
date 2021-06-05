@@ -2,6 +2,7 @@ from datetime import date
 import unittest
 import json
 import os
+from models.user import UserModel
 
 from app import app
 from db import db
@@ -45,6 +46,7 @@ class UserTest(unittest.TestCase):
         )
 
         self.assertEqual(201, response.status_code)
+        UserModel.query.filter(email='testsebastianayala@sagmail.com').delete()
 
     def test_create_user_without_password(self):
         payload = json.dumps(
@@ -75,9 +77,6 @@ class UserTest(unittest.TestCase):
         )
 
         self.assertEqual(400, response.status_code)
-
-    def tearDown(self):
-        pass
 
 
 class TestLoan(unittest.TestCase):
@@ -120,9 +119,17 @@ class TestLoan(unittest.TestCase):
         )
 
         self.assertEqual(201, response.status_code)
-        # loan_request = response.get_json()
-        # self.assertTrue(loan_request.get('is_loan'))
-        # self.assertTrue(loan_request.state.description == 'approved')
+        loan_request = response.get_json()
+        self.assertTrue(loan_request.get('is_loan'))
+        state_response = self.app.get(
+            '/api/state',
+            headers=self.headers,
+            data=json.dumps({
+                'code': 'APPR'
+            })
+        )
+        state = state_response.get_json()
+        self.assertTrue(state.get('description') == 'Approved')
 
     def test_create_request_loan_declined(self):
         payload = json.dumps(
@@ -141,9 +148,17 @@ class TestLoan(unittest.TestCase):
         )
 
         self.assertEqual(201, response.status_code)
-        # loan_request = response[0]
-        # self.assertTrue(loan_request.is_loan)
-        # self.assertTrue(loan_request.state.description == 'declined')
+        loan_request = response.get_json()
+        self.assertTrue(not loan_request.get('is_loan'))
+        state_response = self.app.get(
+            '/api/state',
+            headers=self.headers,
+            data=json.dumps({
+                'code': 'DND'
+            })
+        )
+        state = state_response.get_json()
+        self.assertTrue(state.get('description') == 'Denied')
 
     def test_create_request_loan_undecided(self):
         payload = json.dumps(
@@ -162,9 +177,17 @@ class TestLoan(unittest.TestCase):
         )
 
         self.assertEqual(201, response.status_code)
-        # loan_request = response[0]
-        # self.assertTrue(loan_request.is_loan)
-        # self.assertTrue(loan_request.state.description == 'undecided')
+        loan_request = response.get_json()
+        self.assertTrue(not loan_request.get('is_loan'))
+        state_response = self.app.get(
+            '/api/state',
+            headers=self.headers,
+            data=json.dumps({
+                'code': 'UNDCD'
+            })
+        )
+        state = state_response.get_json()
+        self.assertTrue(state.get('description') == 'Undecided')
 
     def test_create_request_loan_negative_amount(self):
         payload = json.dumps(
@@ -233,22 +256,24 @@ class TestPayment(unittest.TestCase):
                 "number_installments": 60,
             }
         )
-        self.response = self.app.post(
+
+    def test_generate_payments(self):
+        response = self.app.post(
             '/api/loan',
             headers=self.headers,
             data=self.payload_loan
         )
-        loan = self.response.get_json()
+        loan = response.get_json()
+        date_today = date.today()
         loan['accept_terms_conditions'] = True
-        self.response = self.app.put(
+        loan['date_response'] = date_today.isoformat()
+        response = self.app.put(
             '/api/loan',
             headers=self.headers,
             data=json.dumps(loan)
         )
-        print(f"\n\nDFR{self.response.get_json()}\n\n")
-
-    def test_generate_payments(self):
-        loan_data = self.response.get_json()
+        loan = response.get_json()
+        loan_data = response.get_json()
         payload = json.dumps(
             {
                 "loan_id": loan_data.get('id')
@@ -260,16 +285,23 @@ class TestPayment(unittest.TestCase):
             headers=self.headers,
             data=payload
         )
-        print(f"\n\nER{response.get_json()}\n\n")
 
         self.assertEqual(201, response.status_code)
 
     def test_create_payment(self):
-        loan_data = self.response.get_json()
+        response = self.app.post(
+            '/api/loan',
+            headers=self.headers,
+            data=self.payload_loan
+        )
+        loan = response.get_json()
+        date_today = date.today()
+        loan['accept_terms_conditions'] = True
+        loan['date_response'] = date_today.isoformat()
         date_today = date.today()
         payload = json.dumps(
             {
-                "loan_id": loan_data.get('id'),
+                "loan_id": loan.get('id'),
                 "date_payment_deadline": date_today.isoformat(),
                 "date_payment_efective": date_today.isoformat(),
                 "is_active": False,
@@ -282,6 +314,5 @@ class TestPayment(unittest.TestCase):
             headers=self.headers,
             data=payload
         )
-        print(f"\n\nTT{response.get_json()}\n\n")
 
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(201, response.status_code)
