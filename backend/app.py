@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 from flask_jwt import JWT
+from flask_cors import CORS
 
 from resources.user import UserRegister, UserList
 from resources.state import State, StateList
@@ -14,10 +15,12 @@ from db import db
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQL_DATABASE_TEST_URI']
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQL_DATABASE_URI']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.environ['SECRET_API_KEY']
 api = Api(app)
+
+CORS(app)
 
 @app.before_first_request
 def create_tables():
@@ -34,8 +37,7 @@ api.add_resource(Loan, '/api/loan')
 api.add_resource(Payment, '/api/payment')
 api.add_resource(PaymentMasiv, '/api/payments/generate')
 
+db.init_app(app)
 
 if __name__ == '__main__':
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQL_DATABASE_URI']
-    db.init_app(app)
-    app.run(port=6000, debug=True)
+    app.run()
