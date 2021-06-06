@@ -1,4 +1,5 @@
 from flask_restful import Resource, reqparse, inputs
+from flask_jwt import jwt_required
 from models.payment import PaymentModel
 from models.loan import LoanModel
 
@@ -38,6 +39,7 @@ class Payment(Resource):
         type=inputs.positive
     )
 
+    @jwt_required()
     def get(self):
         parser_get = reqparse.RequestParser()
         parser_get.add_argument(
@@ -52,6 +54,7 @@ class Payment(Resource):
             return payment.json()
         return {'message': 'Payment not found'}, 404
 
+    @jwt_required()
     def post(self):
         data = Payment.parser.parse_args()
         payment = PaymentModel(
@@ -64,6 +67,7 @@ class Payment(Resource):
         payment.save_to_db()
         return payment.json(), 201
 
+    @jwt_required()
     def put(self):
         parser_put = self.parser
         parser_put.add_argument(
@@ -90,6 +94,7 @@ class Payment(Resource):
         payment.save_to_db()
         return payment.json()
 
+    @jwt_required()
     def delete(self):
         parser_delete = reqparse.RequestParser()
         parser_delete.add_argument(
@@ -116,6 +121,7 @@ class PaymentMasiv(Resource):
         help="This field cannot be left blank!"
     )
 
+    @jwt_required()
     def post(self):
         data = self.parser.parse_args()
         loan = LoanModel.find_by_loanid(data['loan_id'])

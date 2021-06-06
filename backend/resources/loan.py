@@ -133,6 +133,7 @@ class Loan(Resource):
         loan.save_to_db()
         return loan.json()
 
+    @jwt_required()
     def delete(self):
         parser_delete = reqparse.RequestParser()
         parser_delete.add_argument(

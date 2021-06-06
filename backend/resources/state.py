@@ -1,4 +1,5 @@
 from flask_restful import Resource, reqparse, inputs
+from flask_jwt import jwt_required
 from models.state import StateModel
 
 
@@ -24,6 +25,7 @@ class State(Resource):
         help="This field cannot be left blank!"
     )
 
+    @jwt_required()
     def get(self):
         parser_get = reqparse.RequestParser()
         parser_get.add_argument(
@@ -38,6 +40,7 @@ class State(Resource):
             return state.json()
         return {'message': 'State not found'}, 404
 
+    @jwt_required()
     def post(self):
         data = State.parser.parse_args()
         if StateModel.find_by_code(data['code']):
@@ -50,6 +53,7 @@ class State(Resource):
         state.save_to_db()
         return state.json(), 201
 
+    @jwt_required()
     def put(self):
         parser_put = self.parser
         parser_put.add_argument(
@@ -71,6 +75,7 @@ class State(Resource):
         state.save_to_db()
         return state.json()
 
+    @jwt_required()
     def delete(self):
         parser_delete = reqparse.RequestParser()
         parser_delete.add_argument(
@@ -87,6 +92,7 @@ class State(Resource):
 
 class StateList(Resource):
 
+    @jwt_required()
     def get(self):
         return {
             'states': list(
