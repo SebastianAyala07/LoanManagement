@@ -11,6 +11,7 @@ from resources.payment import Payment,PaymentMasiv
 from security import authenticate, identity
 from initial_data import InitialInformation
 
+from datetime import time, timedelta
 from db import db
 import os
 
@@ -18,6 +19,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQL_DATABASE_URI']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.environ['SECRET_API_KEY']
+app.config['JWT_EXPIRATION_DELTA'] = timedelta(hours=2)
 api = Api(app)
 
 CORS(app)

@@ -131,3 +131,5 @@ dmypy.json
 
 # Custom - I use this to remind myself of things that come up in development
 notas.txt
+
+/backend/.gitignore
